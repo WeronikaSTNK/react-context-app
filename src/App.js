@@ -1,26 +1,52 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+import "./App.css";
+import Login from './components/Login'
+import Home from './components/Home'
+import Header from './components/Header'
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+export const AuthContext = React.createContext(); // here wer have context for app
+
+//initialState will be used in out reducer, the values depend on our use case. Here we want to check if user is authenticated, contains the user data and if a token was sent back from the server after login
+
+const initialState = {
+  isAuthenticated: false,
+  user: null,
+  token: null,
 }
 
+//and reducer function ofc contains a case-switch statements based on actions, returns a new state
+const reducer = (state, action) => {
+  switch (action.type) {
+    case "LOGIN":
+      localStorage.setItem("user", JSON.stringify(action.payload.user))
+      localStorage.setItem("token", JSON.stringify(action.payload.token));
+      return {
+        ...state,
+        isAuthenticated: true,
+        user: action.payload.user,
+        token: action.payload.token
+      };
+    case "LOGOUT":
+      localStorage.clear();
+      return {
+        ...state,
+        isAuthenticated: false,
+        user: null
+      }
+    default:
+      return state
+  }
+}
+function App() {
+  //state contains the state that is used in the component and its updated based on the actions dispatched
+  //dispatch is a function that is used in app to call/dispatch actions that transform or change the state
+  const [state, dispatch] = React.useReducer(reducer, initialState)
+return (
+  <AuthContext.Provider
+  value={{ state, dispatch}}
+  >
+    <Header />
+    <div className="App"> {!state.isAuthenticated? <Login /> : <Home />} </div>
+    </AuthContext.Provider>  );
+}
 export default App;
